@@ -20,6 +20,7 @@ def chat(update: Update, context: CallbackContext) -> None:
     )
     update.message.reply_text(response["choices"][0]["message"]["content"])
 
+print(f"TELEGRAM_BOT_TOKEN: {TELEGRAM_BOT_TOKEN}")  # Debugging 输出
 updater = Updater(TELEGRAM_BOT_TOKEN, use_context=True)
 dp = updater.dispatcher
 dp.add_handler(CommandHandler("start", start))
