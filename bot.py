@@ -10,9 +10,9 @@ def home():
 @app.route('/webhook', methods=['POST'])
 def webhook():
     update = request.json
-    print(update)  # 打印收到的数据
+    print(update) 
     return "OK", 200
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 8080))  # 确保使用 Railway 的端口
+    port = int(os.environ.get("PORT", 8080))  
     app.run(host='0.0.0.0', port=port, debug=True)
 
