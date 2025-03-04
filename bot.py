@@ -11,7 +11,7 @@ def home():
 def webhook():
     update = request.json
     print(update)  # 打印收到的数据
-    return "OK", 200
+    return "OK",200
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8080))  # 确保使用 Railway 的端口
