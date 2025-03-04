@@ -1,6 +1,7 @@
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
 
-load_dotenv()  # 加载 .env 文件
+load_dotenv()
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-print(f"TELEGRAM_BOT_TOKEN: {TELEGRAM_BOT_TOKEN}")  # Debugging 输出
+print(TELEGRAM_BOT_TOKEN)  # 确保它能正确加载
+
