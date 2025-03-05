@@ -10,7 +10,8 @@ CHAT_ID = 1344678579
 
 # === 你的 Notion API 配置 ===
 NOTION_API_KEY = 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
-NOTION_DATABASE_ID = 1ace10bf08f2801b9da0d265aabee5e8
+NOTION_DATABASE_ID = "1ace10bf08f2801b9da0d265aabee5e8"
+
 
 # === 任务列表 ===
 TASKS = ["✅ 处理供应链对接", "✅ 拍摄小红书素材", "✅ 远程管理团队"]
