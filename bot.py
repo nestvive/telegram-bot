@@ -1,47 +1,56 @@
-from flask import Flask, request
 import os
-import time
-import threading
 import requests
-
-# === 你的 Telegram Bot 配置 ===
-TOKEN = 8143371310:AAEYrgXF6uxRFy0y9HgVVcn4kq2k5FRu7xA
-CHAT_ID = 1344678579
-
-# === 你的 Notion API 配置 ===
-NOTION_API_KEY = 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
-NOTION_DATABASE_ID = "1ace10bf08f2801b9da0d265aabee5e8"
-
-
-# === 任务列表 ===
-TASKS = ["✅ 处理供应链对接", "✅ 拍摄小红书素材", "✅ 远程管理团队"]
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-# === 定时推送每日任务 ===
-def send_daily_tasks():
-    while True:
-        current_time = time.strftime("%H:%M")
-        if current_time == "09:00":  # 每天 9:00 AM 推送任务
-            message = "🌟 **今日任务清单** 🌟\n\n" + "\n".join(TASKS) + "\n\n完成后请回复 ✅"
-            requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage",
-                          data={"chat_id": CHAT_ID, "text": message, "parse_mode": "Markdown"})
-        time.sleep(60)  # 每分钟检查一次
+# ✅ 读取环境变量
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")  # ✅ 你的 Telegram 用户 ID
+NOTION_API_KEY = os.getenv("NOTION_API_KEY")
+NOTION_DATABASE_ID = os.getenv("NOTION_DATABASE_ID")
 
-# === Telegram 交互 ===
-@app.route('/webhook', methods=['POST'])
+# ✅ Telegram API 网址
+TELEGRAM_API_URL = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+NOTION_API_URL = f"https://api.notion.com/v1/pages"
+
+# ✅ 主页测试
+@app.route("/", methods=["GET"])
+def home():
+    return "Bot is running!", 200
+
+# ✅ 处理 Telegram Webhook
+@app.route("/webhook", methods=["POST"])
 def webhook():
-    update = request.json
-    if "message" in update and "text" in update["message"]:
-        user_text = update["message"]["text"]
-        if user_text == "✅":
-            requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage",
-                          data={"chat_id": CHAT_ID, "text": "🎉 任务完成，已记录！AI 会调整后续安排"})
-            update_notion_task("今日任务", "完成")  # 自动更新 Notion
-    return "OK", 200
+    data = request.json
+    print("收到消息:", data)  # ✅ 方便调试
 
-# === Notion 任务同步 ===
-def update_notion_task(task_name, status):
+    if "message" in data:
+        chat_id = data["message"]["chat"]["id"]
+        text = data["message"]["text"]
+
+        # ✅ 处理 "/start" 命令
+        if text == "/start":
+            send_message(chat_id, "你好！欢迎使用 ViveLume 助理 Bot！")
+
+        # ✅ 记录到 Notion
+        record_to_notion(text)
+
+        # ✅ 发送回显消息
+        send_message(chat_id, f"你说了: {text}")
+
+    return jsonify({"status": "ok"}), 200
+
+# ✅ 发送 Telegram 消息
+def send_message(chat_id, text):
+    payload = {
+        "chat_id": chat_id,
+        "text": text
+    }
+    requests.post(TELEGRAM_API_URL, json=payload)
+
+# ✅ 记录到 Notion 数据库
+def record_to_notion(text):
     headers = {
         "Authorization": f"Bearer {NOTION_API_KEY}",
         "Content-Type": "application/json",
@@ -50,14 +59,13 @@ def update_notion_task(task_name, status):
     data = {
         "parent": {"database_id": NOTION_DATABASE_ID},
         "properties": {
-            "任务名称": {"title": [{"text": {"content": task_name}}]},
-            "状态": {"select": {"name": status}}
+            "Name": {"title": [{"text": {"content": text}}]}
         }
     }
-    requests.post("https://api.notion.com/v1/pages", headers=headers, json=data)
+    response = requests.post(NOTION_API_URL, json=data, headers=headers)
+    print("Notion API 响应:", response.json())  # ✅ 调试日志
 
-# === 启动 Flask 服务器 ===
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 8080))
-    threading.Thread(target=send_daily_tasks).start()
-    app.run(host='0.0.0.0', port=port)
+# ✅ 启动 Flask 服务器
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
